@@ -54,9 +54,15 @@ const AuctionDetailPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      setAuction(prev => prev ? { ...prev, highestBidAmount: bidAmount } : prev);
       alert('Lance feito com sucesso!');
+      setBidAmount(0);
     } catch (error) {
-      setError('Erro ao fazer lance, tente novamente');
+      if (axios.isAxiosError(error) && error.response?.data?.userMessage) {
+        setError(error.response.data.userMessage);
+      } else {
+        setError('Erro ao fazer lance, tente novamente');
+      }
     }
   };
 
