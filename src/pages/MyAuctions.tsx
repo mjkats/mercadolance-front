@@ -159,14 +159,14 @@ const MyAuctions = () => {
                   </button>
                 </div>
 
-                {formState.status === 'CANCELLED' && (
-                  <button
-                    className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
-                    onClick={() => handleDeleteAuction(auction.id)}
-                  >
-                    Remover dados do leilão
-                  </button>
-                )}
+              {auction.status === 'CANCELLED' && (
+                <button
+                  className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+                  onClick={() => handleDeleteAuction(auction.id)}
+                >
+                  Remover dados do leilão
+                </button>
+              )}
               </>
             ) : (
               <>
