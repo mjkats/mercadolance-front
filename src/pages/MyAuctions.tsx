@@ -135,12 +135,12 @@ const MyAuctions = () => {
                   onChange={(e) => handleChange('status', e.target.value)}
                   className="w-full mb-2 px-3 py-2 border rounded"
                   disabled={
-                    formState.status !== 'ACTIVE' && formState.status !== 'CANCELED'
+                    formState.status !== 'ACTIVE' && formState.status !== 'CANCELLED'
                   }
                 >
                   {formState.status === 'ACTIVE' && <option value="ACTIVE">Ativo</option>}
-                  {(formState.status === 'ACTIVE' || formState.status === 'CANCELED') && (
-                    <option value="CANCELED">Cancelado</option>
+                  {(formState.status === 'ACTIVE' || formState.status === 'CANCELLED') && (
+                    <option value="CANCELLED">Cancelado</option>
                   )}
                 </select>
 
@@ -159,7 +159,7 @@ const MyAuctions = () => {
                   </button>
                 </div>
 
-                {formState.status === 'CANCELED' && (
+                {formState.status === 'CANCELLED' && (
                   <button
                     className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
                     onClick={() => handleDeleteAuction(auction.id)}
