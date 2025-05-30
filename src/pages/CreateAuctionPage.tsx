@@ -43,7 +43,7 @@ const CreateAuctionPage = () => {
     event.preventDefault();
     setError('');
 
-    if (!endTime || !endTime.includes(":") || endTime.length !== 16) {
+    if (!endTime || !endTime.includes(':') || endTime.length !== 16) {
       setError('Data de término inválida.');
       return;
     }
@@ -63,8 +63,7 @@ const CreateAuctionPage = () => {
       let finalProductId: number | null = null;
 
       if (isCreatingProduct && newProductName.trim()) {
-        console.log("creating product");
-        const productRes = await axios.post<Product>(
+        const productRes = await axios.post<number>(
           `${baseUrl}/products`,
           { name: newProductName },
           {
@@ -75,13 +74,11 @@ const CreateAuctionPage = () => {
           }
         );
 
-        console.log("productRes: " + productRes);
+        finalProductId = productRes.data;
 
-        console.log("finalProductId before: " + finalProductId);
-        finalProductId = productRes.data.id;
-        console.log("finalProductId after: " + finalProductId);
+        setProductId(finalProductId);
 
-        setProducts(prev => [...prev, productRes.data]);
+        setIsCreatingProduct(false);
       } else {
         finalProductId = productId;
       }
@@ -109,13 +106,12 @@ const CreateAuctionPage = () => {
         }
       );
 
-      navigate(`/auction/${response.data.id}`);
+      navigate(`/auction/${response.data}`);
     } catch (err) {
       console.error(err);
       setError('Erro ao criar leilão');
     }
   };
-
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white p-8 shadow-md rounded-lg">
