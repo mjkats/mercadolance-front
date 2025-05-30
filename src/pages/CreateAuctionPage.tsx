@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../auth/AuthContext';
 import { Product } from '../interfaces/Product';
+import { format } from 'date-fns';
 import BackToHome from '../components/BackToHome';
 
 const baseUrl = import.meta.env.VITE_API_URL;
@@ -134,6 +135,9 @@ const CreateAuctionPage = () => {
             onChange={(e) => setStartingPrice(Number(e.target.value))}
             required
           />
+          <p className="text-sm text-gray-600 mt-1">
+            Valor formatado: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(startingPrice)}
+          </p>
         </div>
         <div>
           <label className="block font-medium mb-1">Produto</label>
@@ -182,6 +186,11 @@ const CreateAuctionPage = () => {
             onChange={(e) => setEndTime(e.target.value)}
             required
           />
+          {endTime && (
+            <p className="text-sm text-gray-600 mt-1">
+              Data formatada: {format(new Date(endTime), 'dd/MM/yyyy HH:mm')}
+            </p>
+          )}
         </div>
         <button
           type="submit"
