@@ -41,6 +41,7 @@ const CreateAuctionPage = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setError('');
 
     if (!endTime || !endTime.includes(":") || endTime.length !== 16) {
       setError('Data de término inválida.');
@@ -59,7 +60,7 @@ const CreateAuctionPage = () => {
         return;
       }
 
-      let finalProductId = productId;
+      let finalProductId: number | null = null;
 
       if (isCreatingProduct && newProductName.trim()) {
         const productRes = await axios.post<Product>(
@@ -74,9 +75,9 @@ const CreateAuctionPage = () => {
         );
         finalProductId = productRes.data.id;
 
-        setProductId(finalProductId);
-
-        setProducts((prev) => [...prev, productRes.data]);
+        setProducts(prev => [...prev, productRes.data]);
+      } else {
+        finalProductId = productId;
       }
 
       if (!finalProductId || finalProductId === 0) {
@@ -104,10 +105,11 @@ const CreateAuctionPage = () => {
 
       navigate(`/auction/${response.data.id}`);
     } catch (err) {
-      setError('Erro ao criar leilão');
       console.error(err);
+      setError('Erro ao criar leilão');
     }
   };
+
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white p-8 shadow-md rounded-lg">
