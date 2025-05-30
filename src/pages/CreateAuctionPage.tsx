@@ -63,6 +63,7 @@ const CreateAuctionPage = () => {
       let finalProductId: number | null = null;
 
       if (isCreatingProduct && newProductName.trim()) {
+        console.log("creating product");
         const productRes = await axios.post<Product>(
           `${baseUrl}/products`,
           { name: newProductName },
@@ -73,7 +74,12 @@ const CreateAuctionPage = () => {
             }
           }
         );
+
+        console.log("productRes: " + productRes);
+
+        console.log("finalProductId before: " + finalProductId);
         finalProductId = productRes.data.id;
+        console.log("finalProductId after: " + finalProductId);
 
         setProducts(prev => [...prev, productRes.data]);
       } else {
