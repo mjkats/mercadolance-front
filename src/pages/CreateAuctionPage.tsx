@@ -75,6 +75,12 @@ const CreateAuctionPage = () => {
         finalProductId = productRes.data.id;
       }
 
+      // Validação extra
+      if (!finalProductId || finalProductId === 0) {
+        setError('Produto inválido ou não selecionado.');
+        return;
+      }
+
       const response = await axios.post<AuctionResponse>(
         `${baseUrl}/auctions`,
         {
