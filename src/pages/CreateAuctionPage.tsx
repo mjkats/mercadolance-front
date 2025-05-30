@@ -73,9 +73,12 @@ const CreateAuctionPage = () => {
           }
         );
         finalProductId = productRes.data.id;
+
+        setProductId(finalProductId);
+
+        setProducts((prev) => [...prev, productRes.data]);
       }
 
-      // Validação extra
       if (!finalProductId || finalProductId === 0) {
         setError('Produto inválido ou não selecionado.');
         return;
