@@ -42,13 +42,24 @@ export const AuctionCard = ({ id, title, description, startingPrice, endTime, hi
   };
 
   return (
-    <div className="auction-card">
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <p><strong>Preço inicial:</strong> {formatCurrency(startingPrice)}</p>
-      <p><strong>Maior lance:</strong> {formatCurrency(currentHighestBid)}</p>
-      <p><strong>Termina em:</strong> {format(parseISO(endTime), 'dd/MM/yyyy HH:mm')}</p>
-      <Link to={`/auction/${id}`}>Ver Detalhes do Leilão</Link>
+    <div className="bg-white rounded-xl shadow-md p-6 border hover:shadow-lg transition duration-300">
+      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <p className="text-gray-700 mb-2">{description}</p>
+      <p className="mb-1">
+        <strong>Preço inicial:</strong> {formatCurrency(startingPrice)}
+      </p>
+      <p className="mb-1">
+        <strong>Maior lance:</strong> {formatCurrency(currentHighestBid)}
+      </p>
+      <p className="mb-4">
+        <strong>Termina em:</strong> {format(parseISO(endTime), 'dd/MM/yyyy HH:mm')}
+      </p>
+      <Link
+        to={`/auction/${id}`}
+        className="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >
+        Ver Detalhes
+      </Link>
     </div>
   );
 };

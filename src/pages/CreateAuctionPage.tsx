@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../auth/AuthContext';
 import { Product } from '../interfaces/Product';
+import BackToHome from '../components/BackToHome';
 
 const baseUrl = import.meta.env.VITE_API_URL;
 
@@ -18,6 +19,9 @@ const CreateAuctionPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [endTime, setEndTime] = useState('');
   const [error, setError] = useState('');
+  const [isCreatingProduct, setIsCreatingProduct] = useState(false);
+  const [newProductName, setNewProductName] = useState('');
+
   const navigate = useNavigate();
   const { getToken, userId } = useAuth();
 
@@ -38,7 +42,7 @@ const CreateAuctionPage = () => {
     event.preventDefault();
 
     if (!endTime || !endTime.includes(":") || endTime.length !== 16) {
-      setError('Data de término inválida. Certifique-se de que o formato seja correto.');
+      setError('Data de término inválida.');
       return;
     }
 
@@ -50,8 +54,25 @@ const CreateAuctionPage = () => {
     try {
       const token = await getToken();
       if (!token) {
-        setError('Token de autenticação ausente');
+        setError('Token ausente');
         return;
+      }
+
+      let finalProductId = productId;
+
+      // Criar novo produto se necessário
+      if (isCreatingProduct && newProductName.trim()) {
+        const productRes = await axios.post<Product>(
+          `${baseUrl}/products`,
+          { name: newProductName },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        finalProductId = productRes.data.id;
       }
 
       const response = await axios.post<AuctionResponse>(
@@ -59,7 +80,7 @@ const CreateAuctionPage = () => {
         {
           title,
           description,
-          productId,
+          productId: finalProductId,
           creatorId: userId,
           startingPrice,
           endTime: `${endTime}:00`
@@ -72,51 +93,64 @@ const CreateAuctionPage = () => {
         }
       );
 
-      const auctionId = response.data;
-      navigate(`/auction/${auctionId}`);
+      navigate(`/auction/${response.data.id}`);
     } catch (err) {
-      setError('Erro ao criar leilão. Verifique os dados e tente novamente.');
+      setError('Erro ao criar leilão');
       console.error(err);
     }
   };
 
   return (
-    <div>
-      <h1>Criar Leilão</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
+    <div className="max-w-2xl mx-auto mt-10 bg-white p-8 shadow-md rounded-lg">
+      <BackToHome />
+      <h1 className="text-2xl font-bold mb-6 text-center">Criar Leilão</h1>
+      {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label>Título</label>
+          <label className="block font-medium mb-1">Título</label>
           <input
             type="text"
+            className="w-full border border-gray-300 rounded px-3 py-2"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
           />
         </div>
         <div>
-          <label>Descrição</label>
+          <label className="block font-medium mb-1">Descrição</label>
           <textarea
+            className="w-full border border-gray-300 rounded px-3 py-2"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
           />
         </div>
         <div>
-          <label>Preço Inicial</label>
+          <label className="block font-medium mb-1">Preço Inicial</label>
           <input
             type="number"
+            className="w-full border border-gray-300 rounded px-3 py-2"
             value={startingPrice}
             onChange={(e) => setStartingPrice(Number(e.target.value))}
             required
           />
         </div>
         <div>
-          <label>Produto</label>
+          <label className="block font-medium mb-1">Produto</label>
           <select
+            className="w-full border border-gray-300 rounded px-3 py-2"
             value={productId}
-            onChange={(e) => setProductId(Number(e.target.value))}
-            required
+            onChange={(e) => {
+              const selected = e.target.value;
+              if (selected === 'create') {
+                setIsCreatingProduct(true);
+                setProductId(0);
+              } else {
+                setProductId(Number(selected));
+                setIsCreatingProduct(false);
+              }
+            }}
+            required={!isCreatingProduct}
           >
             <option value="">Selecione um produto</option>
             {products.map((product) => (
@@ -124,18 +158,37 @@ const CreateAuctionPage = () => {
                 {product.name}
               </option>
             ))}
+            <option value="create">+ Criar novo produto</option>
           </select>
         </div>
+        {isCreatingProduct && (
+          <div className="mt-2">
+            <label className="block font-medium mb-1">Nome do Novo Produto</label>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded px-3 py-2"
+              value={newProductName}
+              onChange={(e) => setNewProductName(e.target.value)}
+              required
+            />
+          </div>
+        )}
         <div>
-          <label>Data de Término</label>
+          <label className="block font-medium mb-1">Data de Término</label>
           <input
             type="datetime-local"
+            className="w-full border border-gray-300 rounded px-3 py-2"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
             required
           />
         </div>
-        <button type="submit">Criar Leilão</button>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+        >
+          Criar Leilão
+        </button>
       </form>
     </div>
   );

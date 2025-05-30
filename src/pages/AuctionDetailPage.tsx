@@ -5,6 +5,7 @@ import type { AxiosError } from 'axios';
 import { parseISO, format } from 'date-fns';
 import { AuctionBid } from '../interfaces/AuctionBid';
 import { useAuth } from '../auth/AuthContext';
+import BackToHome from '../components/BackToHome';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -22,18 +23,10 @@ const AuctionDetailPage = () => {
   useEffect(() => {
     axios
       .get<AuctionBid>(`${apiUrl}/auctions/${auctionId}`)
-      .then((response) => {
-        setAuction(response.data);
-      })
+      .then((res) => setAuction(res.data))
       .catch((error) => {
         if (isAxiosError(error)) {
-          if (error.response) {
-            setError('Erro ao carregar detalhes do leilão');
-          } else if (error.request) {
-            setError('Nenhuma resposta recebida');
-          } else {
-            setError('Erro na configuração da requisição');
-          }
+          setError('Erro ao carregar detalhes do leilão');
         } else {
           setError('Erro inesperado');
         }
@@ -42,41 +35,16 @@ const AuctionDetailPage = () => {
 
   const handleBid = async () => {
     setError('');
-
-    if (!auction) {
-      setError('Leilão não carregado');
-      return;
-    }
+    if (!auction) return setError('Leilão não carregado');
 
     const now = new Date();
-    const auctionEndTime = new Date(auction.endTime);
-
-    if (now >= auctionEndTime) {
-      setError('Leilão encerrado');
-      return;
-    }
-
-    if (auction.status !== 'ACTIVE') {
-      setError('Leilão não está ativo');
-      return;
-    }
-
-    if (bidAmount <= 0) {
-      setError('Valor do lance deve ser positivo');
-      return;
-    }
-
-    if (bidAmount <= auction.highestBidAmount) {
-      setError('Valor do lance deve ser maior que o maior lance atual');
-      return;
-    }
+    if (now >= new Date(auction.endTime)) return setError('Leilão encerrado');
+    if (auction.status !== 'ACTIVE') return setError('Leilão não está ativo');
+    if (bidAmount <= auction.highestBidAmount) return setError('Lance insuficiente');
 
     try {
       const token = await getToken();
-      if (!token || !userId) {
-        setError('Usuário não autenticado');
-        return;
-      }
+      if (!token || !userId) return setError('Usuário não autenticado');
 
       await axios.post(`${apiUrl}/bids`, {
         userId,
@@ -88,36 +56,41 @@ const AuctionDetailPage = () => {
 
       alert('Lance feito com sucesso!');
     } catch (error) {
-      if (isAxiosError(error)) {
-        setError('Erro ao fazer lance');
-      } else {
-        setError('Erro inesperado ao fazer lance');
-      }
+      setError('Erro ao fazer lance, tente novamente');
     }
   };
 
   return (
-    <div>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div className="max-w-2xl mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
+      <BackToHome />
+      {error && <p className="text-red-500 mb-4">{error}</p>}
       {auction ? (
-        <div>
-          <h1>{auction.title}</h1>
-          <p>{auction.description}</p>
-          <p>Produto: {auction.product.name}</p>
-          <p>Preço inicial: R${auction.startingPrice}</p>
-          <p>Criado por: {auction.createdBy?.name || 'Desconhecido'}</p>
-          <p>Maior lance atual: R$ {auction.highestBidAmount.toFixed(2)}</p>
-          <p>Termina em: {format(parseISO(auction.endTime), "dd/MM/yyyy HH:mm")}</p>
+        <>
+          <h1 className="text-2xl font-bold mb-4">{auction.title}</h1>
+          <p className="mb-2"><strong>Descrição:</strong> {auction.description}</p>
+          <p className="mb-2"><strong>Produto:</strong> {auction.product.name}</p>
+          <p className="mb-2"><strong>Preço inicial:</strong> R$ {auction.startingPrice}</p>
+          <p className="mb-2"><strong>Criador:</strong> {auction.createdBy?.name || 'Desconhecido'}</p>
+          <p className="mb-2"><strong>Maior lance atual:</strong> R$ {auction.highestBidAmount.toFixed(2)}</p>
+          <p className="mb-4"><strong>Termina em:</strong> {format(parseISO(auction.endTime), "dd/MM/yyyy HH:mm")}</p>
 
-          <h2>Fazer um lance</h2>
-          <input
-            type="number"
-            value={bidAmount}
-            onChange={(e) => setBidAmount(Number(e.target.value))}
-            placeholder="Valor do lance"
-          />
-          <button onClick={handleBid}>Enviar Lance</button>
-        </div>
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">Fazer um lance</h2>
+            <input
+              type="number"
+              value={bidAmount}
+              onChange={(e) => setBidAmount(Number(e.target.value))}
+              className="w-full border px-3 py-2 rounded"
+              placeholder="Valor do lance"
+            />
+            <button
+              onClick={handleBid}
+              className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+            >
+              Enviar Lance
+            </button>
+          </div>
+        </>
       ) : (
         <p>Carregando...</p>
       )}
@@ -126,3 +99,4 @@ const AuctionDetailPage = () => {
 };
 
 export default AuctionDetailPage;
+
