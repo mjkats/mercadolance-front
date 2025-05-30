@@ -179,14 +179,23 @@ const MyAuctions = () => {
                 <p className="text-sm mb-3">
                   <strong>Status:</strong> {auction.status}
                 </p>
-                {auction.status === 'ACTIVE' && (
-                  <button
-                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-                    onClick={() => handleEditClick(auction)}
-                  >
-                    Editar
-                  </button>
-                )}
+              {auction.status === 'ACTIVE' && (
+                <button
+                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                  onClick={() => handleEditClick(auction)}
+                >
+                  Editar
+                </button>
+              )}
+
+              {auction.status === 'CANCELLED' && (
+                <button
+                  className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+                  onClick={() => handleDeleteAuction(auction.id)}
+                >
+                  Remover dados do leilão
+                </button>
+              )}
               </>
             )}
           </div>
