@@ -42,27 +42,57 @@ const MyAuctions = () => {
     setFormState({});
   };
 
+  const handleChange = (field: keyof Auction, value: string | number) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  };
+
   const handleSave = async () => {
     try {
       const token = await getToken();
-      await axios.put(`${baseUrl}/auctions`, formState, {
+
+      const updatedAuction = {
+        ...formState,
+        endTime: formState.endTime ? new Date(formState.endTime).toISOString() : undefined,
+      };
+
+      await axios.put(`${baseUrl}/auctions/${formState.id}`, updatedAuction, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       });
+
       setAuctions((prev) =>
-        prev.map((a) => (a.id === formState.id ? { ...a, ...formState } as Auction : a))
+        prev.map((a) =>
+          a.id === formState.id ? { ...a, ...updatedAuction } as Auction : a
+        )
       );
       setEditingId(null);
       setFormState({});
+      setError('');
     } catch (err) {
       setError('Erro ao salvar alterações');
     }
   };
 
-  const handleChange = (field: keyof Auction, value: string | number) => {
-    setFormState((prev) => ({ ...prev, [field]: value }));
+  const handleDeleteAuction = async (id: number) => {
+    if (!window.confirm('Tem certeza que deseja remover os dados do leilão? Essa ação é irreversível.')) return;
+
+    try {
+      const token = await getToken();
+      await axios.delete(`${baseUrl}/auctions/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAuctions((prev) => prev.filter((a) => a.id !== id));
+      alert('Leilão removido com sucesso!');
+      if (editingId === id) {
+        setEditingId(null);
+        setFormState({});
+      }
+      setError('');
+    } catch (err) {
+      setError('Erro ao remover leilão');
+    }
   };
 
   return (
@@ -82,13 +112,14 @@ const MyAuctions = () => {
               <>
                 <input
                   type="text"
-                  value={formState.title}
+                  value={formState.title || ''}
                   onChange={(e) => handleChange('title', e.target.value)}
                   className="w-full mb-2 px-3 py-2 border rounded"
                   placeholder="Título"
+                  disabled
                 />
                 <textarea
-                  value={formState.description}
+                  value={formState.description || ''}
                   onChange={(e) => handleChange('description', e.target.value)}
                   className="w-full mb-2 px-3 py-2 border rounded"
                   placeholder="Descrição"
@@ -96,18 +127,24 @@ const MyAuctions = () => {
                 <input
                   type="datetime-local"
                   value={(formState.endTime || '').slice(0, 16)}
-                  onChange={(e) => handleChange('endTime', e.target.value + ':00')}
+                  onChange={(e) => handleChange('endTime', e.target.value)}
                   className="w-full mb-2 px-3 py-2 border rounded"
                 />
                 <select
-                  value={formState.status}
+                  value={formState.status || ''}
                   onChange={(e) => handleChange('status', e.target.value)}
                   className="w-full mb-2 px-3 py-2 border rounded"
+                  disabled={
+                    formState.status !== 'ACTIVE' && formState.status !== 'CANCELED'
+                  }
                 >
-                  <option value="ACTIVATED">Ativado</option>
-                  <option value="CANCELLED">Cancelado</option>
+                  {formState.status === 'ACTIVE' && <option value="ACTIVE">Ativo</option>}
+                  {(formState.status === 'ACTIVE' || formState.status === 'CANCELED') && (
+                    <option value="CANCELED">Cancelado</option>
+                  )}
                 </select>
-                <div className="flex justify-between gap-2">
+
+                <div className="flex justify-between gap-2 mb-2">
                   <button
                     className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700"
                     onClick={handleSave}
@@ -121,6 +158,15 @@ const MyAuctions = () => {
                     Cancelar
                   </button>
                 </div>
+
+                {formState.status === 'CANCELED' && (
+                  <button
+                    className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+                    onClick={() => handleDeleteAuction(auction.id)}
+                  >
+                    Remover dados do leilão
+                  </button>
+                )}
               </>
             ) : (
               <>
@@ -133,7 +179,7 @@ const MyAuctions = () => {
                 <p className="text-sm mb-3">
                   <strong>Status:</strong> {auction.status}
                 </p>
-                {auction.status === 'ACTIVATED' && (
+                {auction.status === 'ACTIVE' && (
                   <button
                     className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
                     onClick={() => handleEditClick(auction)}

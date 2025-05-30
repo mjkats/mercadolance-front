@@ -61,7 +61,6 @@ const CreateAuctionPage = () => {
 
       let finalProductId = productId;
 
-      // Criar novo produto se necessário
       if (isCreatingProduct && newProductName.trim()) {
         const productRes = await axios.post<Product>(
           `${baseUrl}/products`,
