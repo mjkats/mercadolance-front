@@ -29,7 +29,9 @@ const MyAuctions = () => {
       }
     };
 
-    fetchAuctions();
+    if (userId) {
+      fetchAuctions();
+    }
   }, [userId, getToken]);
 
   const handleEditClick = (auction: Auction) => {
